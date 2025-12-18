@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Pipeline CI"]
     types: [completed]
-    # CORRECCIÓN: Tu terminal muestra que usas la rama 'master'
     branches: [master]
 
 jobs:
@@ -22,22 +21,11 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Instalar Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_wrapper: false 
-
-    - name: Terraform Apply
-      # Terraform se ejecuta en la raíz donde está tu main.tf
-      run: |
-        terraform init
-        terraform apply -auto-approve
-
     - name: Actualizar Kubeconfig
-      # Se conecta al clúster creado en el paso anterior
       run: aws eks update-kubeconfig --name microservicios-cluster --region us-east-1
 
     - name: Desplegar en Kubernetes
-      # CORRECCIÓN: El archivo se movió a la raíz para que GitHub no marque error
+      # Esto forzará a Kubernetes a usar la nueva imagen que subiste en 'cambios v10'
       run: |
         kubectl apply -f ./deployment.yaml
+        kubectl rollout restart deployment productos-api-deployment
