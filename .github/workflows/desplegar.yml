@@ -23,12 +23,14 @@ jobs:
         aws-region: us-east-1
 
     - name: Actualizar Kubeconfig
-      # Conexión al clúster 'microservicios-cluster' en AWS
+      # Conexión al clúster 'microservicios-cluster'
       run: aws eks update-kubeconfig --name microservicios-cluster --region us-east-1
 
     - name: Desplegar en Kubernetes
       run: |
-        # CORRECCIÓN: Se cambió .yaml por .yml para que coincida con tu archivo real
+        # Aplica el archivo deployment.yml que está en la raíz
         kubectl apply -f ./deployment.yml
-        # Reinicia el despliegue para asegurar que tome la última imagen de Docker Hub
-        kubectl rollout restart deployment productos-api-deployment
+        
+        # CORRECCIÓN: El nombre del deployment debe ser 'productos-api'
+        # para que coincida con el nombre que definiste en el archivo de Kubernetes.
+        kubectl rollout restart deployment productos-api
