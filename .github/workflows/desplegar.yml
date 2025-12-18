@@ -8,7 +8,6 @@ on:
 
 jobs:
   despliegue:
-    # Solo se ejecuta si el Pipeline CI terminó con éxito
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
@@ -23,14 +22,29 @@ jobs:
         aws-region: us-east-1
 
     - name: Actualizar Kubeconfig
-      # Conexión al clúster 'microservicios-cluster'
+      # Conexión automática al clúster en AWS
       run: aws eks update-kubeconfig --name microservicios-cluster --region us-east-1
 
     - name: Desplegar en Kubernetes
       run: |
-        # Aplica el archivo deployment.yml que está en la raíz
+        # Aplica el manifiesto de la raíz
         kubectl apply -f ./deployment.yml
-        
-        # CORRECCIÓN: El nombre del deployment debe ser 'productos-api'
-        # para que coincida con el nombre que definiste en el archivo de Kubernetes.
+        # Reinicia el despliegue con el nombre correcto
         kubectl rollout restart deployment productos-api
+
+    - name: Obtener URL del Servidor
+      run: |
+        echo "Esperando a que AWS asigne la URL pública..."
+        # Pausa breve para dar tiempo al LoadBalancer de responder
+        sleep 15
+        # Extraer el hostname del servicio de tipo LoadBalancer
+        URL=$(kubectl get service productos-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        
+        # Imprimir en los logs del pipeline
+        echo "------------------------------------------------------"
+        echo "URL DE ACCESO: http://$URL/swagger"
+        echo "------------------------------------------------------"
+        
+        # Publicar en el resumen de GitHub Actions
+        echo "### 🚀 Despliegue Exitoso" >> $GITHUB_STEP_SUMMARY
+        echo "La API está disponible en: [http://$URL/swagger](http://$URL/swagger)" >> $GITHUB_STEP_SUMMARY
