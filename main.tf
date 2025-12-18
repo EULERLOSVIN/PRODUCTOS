@@ -7,12 +7,12 @@ terraform {
     }
   }
 }
-
+ 
 provider "aws" {
   region = "us-east-1"
 }
 
-# 2. Red (VPC): Configuración para EKS y conectividad a Docker Hub
+# 2. Red (VPC): Configuración para EKS y conectividad a DockerHub
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
