@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productos-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: productos
+  template:
+    metadata:
+      labels:
+        app: productos
+    spec:
+      containers:
+      - name: productos-container
+        # IMPORTANTE: Aquí debes poner tu usuario de Docker Hub directamente (euler09)
+        # porque kubectl no puede leer los secrets de GitHub al ejecutarse
+        image: euler09/productos-api:latest 
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          # Tu cadena de conexión a la nueva base de datos RDS
+          value: "Server=servidor-sql.cevqoao4e4li.us-east-1.rds.amazonaws.com,1433;Database=DbMicroserviceProducts;User Id=admin;Password=martinez1234;TrustServerCertificate=True;"
+        - name: RabbitMq__Hostname
+          # Agregamos la URL de tu Amazon MQ para que la Saga funcione
+          value: "b-f19a7ab2-7079-4163-b0c6-854fe583469f.mq.us-east-1.on.aws"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productos-service
+spec:
+  selector:
+    app: productos
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer # Cambiado a LoadBalancer para que AWS te dé una URL pública para probar

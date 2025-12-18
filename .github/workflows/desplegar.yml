@@ -1,0 +1,44 @@
+name: Desplegar a AWS y K8s
+
+on:
+  workflow_run:
+    workflows: ["Pipeline CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  despliegue:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Descargar código
+      uses: actions/checkout@v3
+
+    - name: Configurar credenciales de AWS
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        # Estas llaves deben ser las de tu nueva cuenta 8958-5051-6354
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Instalar Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false # Desactivar wrapper para evitar errores con salidas de consola
+
+    - name: Terraform Apply
+      # Asegúrate de que el archivo main.tf esté en la raíz o ajusta la ruta
+      run: |
+        terraform init
+        terraform apply -auto-approve
+
+    # PASO CLAVE: Conectar con el clúster EKS creado por Terraform
+    - name: Actualizar Kubeconfig
+      # El nombre 'microservicios-cluster' debe coincidir con tu main.tf
+      run: aws eks update-kubeconfig --name microservicios-cluster --region us-east-1
+
+    # PASO FINAL: Aplicar el manifiesto que está en la carpeta de workflows
+    - name: Desplegar en Kubernetes
+      run: |
+        kubectl apply -f .github/workflows/deployment.yaml
