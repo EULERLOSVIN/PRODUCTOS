@@ -2,7 +2,8 @@ name: Pipeline CI
 
 on:
   push:
-    branches: [ "main" ]
+    # CORRECCIÓN: Cambiado de "main" a "master" para coincidir con tu rama actual
+    branches: [ "master" ]
 
 jobs:
   probar-y-subir:
@@ -17,7 +18,7 @@ jobs:
         dotnet-version: 9.0.x
         
     - name: Ejecutar Tests
-      # Busca automáticamente los proyectos de prueba como PRODUCTOS.Tests.Unit
+      # Ejecutará tus pruebas unitarias en PRODUCTOS.Tests.Unit
       run: dotnet test 
 
     - name: Login en Docker Hub
@@ -29,10 +30,10 @@ jobs:
     - name: Construir y Subir Imagen de Productos
       uses: docker/build-push-action@v4
       with:
-        # El contexto debe ser la raíz (.) para que Docker pueda copiar todas las capas del microservicio
+        # El contexto es la raíz para ver todos los proyectos de la solución
         context: .
-        # RUTA SEGÚN TU EXPLORADOR: Se encuentra dentro de la carpeta PRODUCTOS.API
+        # Ruta validada en tu Explorador de Soluciones
         file: ./PRODUCTOS.API/Dockerfile 
         push: true
-        # Se etiqueta con tu usuario (euler09) y el nombre del repo
+        # Se usará euler09/productos-api:latest
         tags: ${{ secrets.DOCKER_USERNAME }}/productos-api:latest
