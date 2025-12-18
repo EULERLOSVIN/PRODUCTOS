@@ -8,7 +8,7 @@ on:
 
 jobs:
   despliegue:
-    # Solo se ejecuta si el Pipeline CI (tests y docker) terminó con éxito
+    # Solo se ejecuta si el Pipeline CI terminó con éxito
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
@@ -23,11 +23,12 @@ jobs:
         aws-region: us-east-1
 
     - name: Actualizar Kubeconfig
-      # Esto conecta a GitHub con tu clúster automáticamente
+      # Conexión al clúster 'microservicios-cluster' en AWS
       run: aws eks update-kubeconfig --name microservicios-cluster --region us-east-1
 
     - name: Desplegar en Kubernetes
-      # Esto actualiza la aplicación con la nueva imagen de Docker Hub
       run: |
-        kubectl apply -f ./deployment.yaml
+        # CORRECCIÓN: Se cambió .yaml por .yml para que coincida con tu archivo real
+        kubectl apply -f ./deployment.yml
+        # Reinicia el despliegue para asegurar que tome la última imagen de Docker Hub
         kubectl rollout restart deployment productos-api-deployment
