@@ -30,7 +30,7 @@ jobs:
     - name: Construir y Subir Imagen de Productos
       uses: docker/build-push-action@v4
       with:
-        # El contexto es la raíz para ver todos los proyectos de la solución
+        # El contexto es la raíz para ver todos los proyectos de la solucion ..
         context: .
         # Ruta validada en tu Explorador de Soluciones
         file: ./PRODUCTOS.API/Dockerfile 
